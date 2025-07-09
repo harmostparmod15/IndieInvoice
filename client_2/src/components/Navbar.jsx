@@ -2,6 +2,7 @@ import React, { useEffect } from "react";
 import { useSelector, useDispatch } from "react-redux";
 import { useNavigate, Link } from "react-router-dom";
 import { setUser } from "../store/userSlice"; // adjust path as needed
+import { setClients } from "../store/clientSlice";
 import UserAvatar from "./UserAvatar";
 import axios from "axios";
 
@@ -25,6 +26,7 @@ const Navbar = () => {
       );
 
       dispatch(setUser(null));
+      dispatch(setClients([]));
       navigate("/login");
     } catch (error) {
       console.error("Logout failed", error);

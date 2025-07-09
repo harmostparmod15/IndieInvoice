@@ -3,6 +3,7 @@ import { Link, useNavigate } from "react-router-dom";
 import axios from "axios";
 import { useDispatch } from "react-redux";
 import { setUser } from "../store/userSlice";
+import { setClients } from "../store/clientSlice";
 import { Mail, Lock } from "lucide-react";
 
 export default function Login() {

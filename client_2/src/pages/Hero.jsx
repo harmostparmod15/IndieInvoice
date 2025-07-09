@@ -2,7 +2,7 @@
 import React from "react";
 import { Link } from "react-router-dom";
 
-export default function Hero()  {
+export default function Hero() {
   return (
     <div className="flex flex-col items-center justify-center min-h-screen bg-gradient-to-b from-blue-100 to-white px-4 text-center">
       <h1 className="text-4xl md:text-6xl font-bold text-blue-700 mb-4">
@@ -27,4 +27,4 @@ export default function Hero()  {
       </div>
     </div>
   );
-};
+}
