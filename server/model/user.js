@@ -9,11 +9,16 @@ const userSchema = new mongoose.Schema({
         type: String,
         required: [true, "Email is required"],
         unique: true,
-        // lowercase: true,
     },
     password: {
         type: String,
         required: [true, "Password is required"],
+    },
+    companyName: {
+        type: String,
+    },
+    logoUrl: {
+        type: String,
     },
 }, { timestamps: true });
 

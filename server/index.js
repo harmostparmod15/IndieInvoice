@@ -1,9 +1,16 @@
 const express = require("express");
 require("dotenv").config();
 const cookieParser = require("cookie-parser");
+const cors = require("cors");
+
 const connectDB = require("./config/db");
 
 const app = express();
+
+app.use(cors({
+  origin: "http://localhost:5173", // allow React frontend
+  credentials: true               // allow cookies (very important)
+}));
 
 // Middleware
 app.use(cookieParser());

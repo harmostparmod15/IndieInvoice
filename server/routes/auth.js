@@ -11,32 +11,28 @@ const authRouter = express.Router();
 
 
 // Login route
+
 authRouter.post("/login", checkValidDataLogin, async (req, res) => {
     try {
         const { email, password } = req.body;
 
-
-        // Check if user exists
         const user = await User.findOne({ email });
-        if (!user) throw new Error("Invalid credentials");
+        if (!user) throw new Error("User not found");
 
-        // Compare password
         const isMatch = await bcrypt.compare(password, user.password);
         if (!isMatch) throw new Error("Invalid credentials");
 
-        // Create JWT token
         const token = jwt.sign(
             { id: user._id, email: user.email },
             process.env.JWT_SECRET,
-            { expiresIn: process.env.JWT_EXPIRES_IN || "3d" }
+            { expiresIn: "3d" }
         );
 
-        // Send token as httpOnly cookie
         res.cookie("token", token, {
             httpOnly: true,
-            secure: process.env.NODE_ENV === "production", // true on HTTPS
             sameSite: "strict",
-            maxAge: 3 * 24 * 60 * 60 * 1000, // 3 days
+            secure: process.env.NODE_ENV === "production",
+            maxAge: 3 * 24 * 60 * 60 * 1000,
         });
 
         res.status(200).json({
@@ -46,6 +42,8 @@ authRouter.post("/login", checkValidDataLogin, async (req, res) => {
                 id: user._id,
                 name: user.name,
                 email: user.email,
+                companyName: user.companyName,
+                logoUrl: user.logoUrl,
             },
             error: "",
         });
@@ -60,46 +58,52 @@ authRouter.post("/login", checkValidDataLogin, async (req, res) => {
 });
 
 
+
+
+
 // Register route
 authRouter.post("/register", checkValidDataRegister, async (req, res) => {
     try {
-        const { name, email, password } = req.body;
+        const { name, email, password, companyName, logoUrl } = req.body;
 
-        // Validate email format
-        const isEmailValid = isValidEmail(email);
-        if (!isEmailValid) throw new Error("Email is not valid");
+        if (!isValidEmail(email)) throw new Error("Invalid email format");
 
-        // Check if user already exists
         const existingUser = await User.findOne({ email });
-        if (existingUser) throw new Error("User already registered with this email");
+        if (existingUser) throw new Error("User already exists with this email");
 
-        // Hash the password
         const hashedPassword = await bcrypt.hash(password, 10);
 
-        // Save new user with hashed password
-        const newUser = new User({ name, email, password: hashedPassword });
+        const newUser = new User({
+            name,
+            email,
+            password: hashedPassword,
+            companyName,
+            logoUrl,
+        });
+
         const savedUser = await newUser.save();
 
         res.status(201).json({
             status: 201,
+            msg: "Registration successful",
             data: {
                 id: savedUser._id,
                 name: savedUser.name,
                 email: savedUser.email,
+                companyName: savedUser.companyName,
+                logoUrl: savedUser.logoUrl,
             },
-            msg: "Successfully registered",
             error: "",
         });
-    }
-    catch (error) {
+    } catch (error) {
         res.status(400).json({
             status: 400,
-            data: {},
             msg: "Registration failed",
             error: error.message,
+            data: {},
         });
     }
-}
-);
+});
+
 
 module.exports = authRouter;
