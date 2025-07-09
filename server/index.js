@@ -8,7 +8,7 @@ const connectDB = require("./config/db");
 // Routes
 const authRouter = require("./routes/auth.js")
 const clientRouter = require("./routes/client.js")
-
+const invoiceRouter = require("./routes/invoice.js")
 const app = express();
 
 app.use(cors({
@@ -24,6 +24,7 @@ app.use(express.json());
 
 app.use("/api/auth/", authRouter  );
 app.use("/api/client" , clientRouter);
+app.use("/api/invoice" , invoiceRouter);
 
 // DB
 connectDB();
