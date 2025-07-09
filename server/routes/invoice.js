@@ -104,6 +104,8 @@ router.post("/create", protectFromCookie, async (req, res) => {
 router.get("/get-all", protectFromCookie, async (req, res) => {
   try {
     const userId = req.user.id;
+    const inv = await Invoice.find().populate("userId");
+    console.log(inv);
     const invoices = await Invoice.find({ userId }).populate("clientId");
     res.status(200).json({ status: 200, data: invoices, error: "" });
   } catch (error) {
