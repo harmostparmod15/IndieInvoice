@@ -23,21 +23,31 @@ router.post("/create", protectFromCookie, async (req, res) => {
       notes,
     } = req.body;
 
+    // ✅ Sanitize service values
+    const cleanedServices = services.map((service) => ({
+      name: service.name,
+      quantity: Number(service.quantity) || 0,
+      price: Number(service.price) || 0,
+    }));
+
     // 1. Auto-generate invoice number
     let invoiceNumber = "#1001";
     const lastInvoice = await Invoice.findOne({ userId }).sort({
       createdAt: -1,
     });
 
-    if (lastInvoice) {
-      const lastNum =
-        parseInt(lastInvoice.invoiceNumber.replace("#", "")) || 1000;
-      invoiceNumber = `#${lastNum + 1}`;
+    console.log("last invoice", lastInvoice);
+
+    if (lastInvoice && lastInvoice.invoiceNumber?.startsWith("#")) {
+      const lastNum = parseInt(lastInvoice.invoiceNumber.replace("#", ""));
+      if (!isNaN(lastNum)) {
+        invoiceNumber = `#${lastNum + 1}`;
+      }
     }
 
     // 2. Calculate subtotal
-    const subtotal = services.reduce(
-      (acc, service) => acc + service.quantity * service.price,
+    const subtotal = cleanedServices.reduce(
+      (acc, item) => acc + item.quantity * item.price,
       0
     );
 
@@ -55,11 +65,12 @@ router.post("/create", protectFromCookie, async (req, res) => {
     // 5. Final total
     const totalAmount = Math.round(discountedSubtotal + taxAmount);
 
+    // 6. Save invoice
     const newInvoice = new Invoice({
       userId,
       clientId: new mongoose.Types.ObjectId(clientId),
       invoiceNumber,
-      services,
+      services: cleanedServices, // ✅ use sanitized data
       taxRate,
       discount,
       status,
