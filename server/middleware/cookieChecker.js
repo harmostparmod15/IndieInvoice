@@ -4,7 +4,6 @@ const User = require("../model/user");
 const protectFromCookie = async (req, res, next) => {
   try {
     const token = req.cookies.token;
-
     if (!token) {
       return res.status(401).json({ message: "Not authorized, token missing in cookies" });
     }

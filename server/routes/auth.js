@@ -17,7 +17,7 @@ const authRouter = express.Router();
 //  ==============. USER ROUTES ===================
 
 // Login route
-authRouter.post("/login", checkValidDataLogin, async (req, res) => {
+authRouter.post("/user/login", checkValidDataLogin, async (req, res) => {
   try {
     const { email, password } = req.body;
 
@@ -68,7 +68,7 @@ authRouter.post("/login", checkValidDataLogin, async (req, res) => {
 
 
 // Register route
-authRouter.post("/register", checkValidDataRegister, async (req, res) => {
+authRouter.post("/user/register", checkValidDataRegister, async (req, res) => {
   try {
     const { name, email, password, companyName, logoUrl } = req.body;
 
@@ -109,17 +109,51 @@ authRouter.post("/register", checkValidDataRegister, async (req, res) => {
       data: {},
     });
   }
+
 });
+
+
+// Update profile
+authRouter.patch("/user/update-profile", protectFromCookie, async (req, res) => {
+    try {
+      const userId = req.user.id;
+      const { name, companyName, logoUrl } = req.body;
+  
+
+      const updatedUser = await User.findByIdAndUpdate(
+        userId,
+        {
+          ...(name && { name }),
+          ...(companyName && { companyName }),
+          ...(logoUrl && { logoUrl }),
+        },
+        { new: true, runValidators: true }
+      ).select("-password"); // exclude password from response
+  
+      res.status(200).json({
+        status: 200,
+        message: "Profile updated successfully",
+        data: updatedUser,
+      });
+    } catch (error) {
+      res.status(400).json({
+        status: 400,
+        message: "Failed to update profile",
+        error: error.message,
+      });
+    }
+  });
+  
 
 
 //  ==============. CLIENT ROUTES ===================
 
 
 
-
-authRouter.post("/client/register",protectFromCookie , checkValidDataRegister, async (req, res) => {
+//  register client
+authRouter.post("/client/register",protectFromCookie , async (req, res) => {
   try {
-    const { name, email, password, companyName,  phone,
+    const { name, email, companyName,  phone,
         address,
         gstNumber,
         notes, } = req.body;
@@ -136,9 +170,6 @@ if (!isValidEmail(email)) {
       return res.status(409).json({ message: "User already exists with this email." });
     }
 
-    // Hash password
-    const salt = await bcrypt.genSalt(10);
-    const passwordHash = await bcrypt.hash(password, salt);
 
     const userId = req?.user?.id;
 
@@ -147,7 +178,6 @@ if (!isValidEmail(email)) {
         userId,
       name,
       email,
-      passwordHash,
       companyName,
       phone,
       address,
@@ -184,6 +214,8 @@ if (!isValidEmail(email)) {
 
   }
 });
+
+
 
 
 
