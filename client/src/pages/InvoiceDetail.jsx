@@ -8,6 +8,7 @@ const InvoiceDetail = () => {
   const [invoice, setInvoice] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
+  const [statusMsg, setStatusMsg] = useState("");
 
   useEffect(() => {
     const fetchInvoice = async () => {
@@ -16,9 +17,9 @@ const InvoiceDetail = () => {
           withCredentials: true,
         });
         setInvoice(res.data.data);
-        setLoading(false);
       } catch (err) {
         setError("Failed to fetch invoice.");
+      } finally {
         setLoading(false);
       }
     };
@@ -31,7 +32,7 @@ const InvoiceDetail = () => {
       const res = await axios.get(
         `http://localhost:4000/api/invoice/${id}/pdf`,
         {
-          responseType: "blob", // important to treat PDF as binary
+          responseType: "blob",
           withCredentials: true,
         }
       );
@@ -41,24 +42,32 @@ const InvoiceDetail = () => {
 
       const link = document.createElement("a");
       link.href = url;
-      //   link.download = `invoice-${invoice.invoiceNumber}.pdf`;
       link.target = "_blank";
-
       document.body.appendChild(link);
       link.click();
-
-      // Clean up
       link.remove();
       window.URL.revokeObjectURL(url);
     } catch (err) {
-      console.error("Download error", err);
       alert("Failed to download PDF.");
     }
   };
 
-  const handleSendEmail = async () => {
-    // Optional: call backend to email invoice
+  const handleSendEmail = () => {
     alert("📧 Email functionality coming soon.");
+  };
+
+  const handleMarkAsPaid = async () => {
+    try {
+      const res = await axios.patch(
+        `http://localhost:4000/api/invoice/update-status/${id}`,
+        { status: "Paid" },
+        { withCredentials: true }
+      );
+      setInvoice(res.data.data); // ✅ Update local state
+      setStatusMsg("✅ Invoice marked as Paid!");
+    } catch (err) {
+      setStatusMsg("❌ Failed to update status.");
+    }
   };
 
   if (loading) return <Spinner size={8} />;
@@ -105,6 +114,9 @@ const InvoiceDetail = () => {
             {status}
           </span>
         </p>
+        {statusMsg && (
+          <p className="text-sm mt-1 text-blue-600 font-medium">{statusMsg}</p>
+        )}
         <p className="text-sm text-gray-600">
           Date: {new Date(invoiceDate).toLocaleDateString()}
         </p>
@@ -145,8 +157,7 @@ const InvoiceDetail = () => {
           {discount.type === "percent"
             ? `${discount.value}%`
             : `₹${discount.value}`}
-          ): -₹
-          {discountValue}
+          ): -₹{discountValue}
         </p>
         <p>
           Tax ({taxRate}%): ₹{Math.round(taxAmount)}
@@ -163,19 +174,29 @@ const InvoiceDetail = () => {
       )}
 
       {/* Action buttons */}
-      <div className="flex gap-4 mt-6">
+      <div className="flex flex-wrap gap-4 mt-6">
         <button
           onClick={handleViewPDF}
           className="bg-blue-600 text-white px-5 py-2 rounded hover:bg-blue-700 transition"
         >
           🧾 View PDF
         </button>
+
         <button
           onClick={handleSendEmail}
           className="bg-green-600 text-white px-5 py-2 rounded hover:bg-green-700 transition"
         >
           📧 Send Email
         </button>
+
+        {status !== "Paid" && (
+          <button
+            onClick={handleMarkAsPaid}
+            className="bg-gray-800 text-white px-5 py-2 rounded hover:bg-gray-900 transition"
+          >
+            ✅ Mark as Paid
+          </button>
+        )}
       </div>
     </div>
   );

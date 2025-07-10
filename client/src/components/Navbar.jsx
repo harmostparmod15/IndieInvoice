@@ -34,12 +34,13 @@ const Navbar = () => {
   };
 
   return (
-    <nav className="bg-blue-600 text-white px-6 py-4 shadow-md flex justify-between items-center">
-      <Link to="/dashboard" className="text-xl font-bold">
+    <nav className=" bg-blue-600 text-white px-6 py-4 shadow-md flex justify-between items-center">
+      <Link to="/dashboard" className=" text-xl font-bold">
         IndieInvoice
       </Link>
-      <UserAvatar />
-      <div className="space-x-4">
+
+      <div className="space-x-4  flex justify-between items-center">
+        <UserAvatar />
         <Link to="/" className="hover:underline">
           Home
         </Link>

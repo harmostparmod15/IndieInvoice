@@ -23,7 +23,6 @@ router.post("/create", protectFromCookie, async (req, res) => {
       notes,
     } = req.body;
 
-    // ✅ Sanitize service values
     const cleanedServices = services.map((service) => ({
       name: service.name,
       quantity: Number(service.quantity) || 0,
@@ -137,8 +136,6 @@ router.get("/:id", protectFromCookie, async (req, res) => {
 });
 
 // get the pdf of invoice with invoice id
-
-// GET: Generate Invoice PDF
 router.get("/:id/pdf", protectFromCookie, async (req, res) => {
   try {
     // 1. Find invoice and populate clientId
@@ -172,6 +169,28 @@ router.get("/:id/pdf", protectFromCookie, async (req, res) => {
     if (!res.headersSent) {
       res.status(500).json({ error: "Failed to generate invoice PDF" });
     }
+  }
+});
+
+//  update invoice status as paid
+router.patch("/update-status/:id", async (req, res) => {
+  try {
+    const invoiceId = req.params.id;
+    const { status } = req.body;
+
+    const updatedInvoice = await Invoice.findByIdAndUpdate(
+      invoiceId,
+      { status },
+      { new: true }
+    );
+
+    if (!updatedInvoice) {
+      return res.status(404).json({ error: "Invoice not found" });
+    }
+
+    res.status(200).json({ data: updatedInvoice });
+  } catch (err) {
+    res.status(500).json({ error: "Failed to update status" });
   }
 });
 
